@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+                           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <context:component-scan base-package="com.shed"/>
+
+    <!--使用注解配置AOP需配置自动代理-->
+<!--    <aop:aspectj-autoproxy/>-->
+
+    <context:property-placeholder location="classpath:jdbc.properties"/>
+
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="${driverClass}"/>
+        <property name="jdbcUrl" value="${jdbcUrl}"/>
+        <property name="user" value="${user}"/>
+        <property name="password" value="${password}"/>
+    </bean>
+
+    <bean id="target" class="com.shed.aop.spring.target.impl.Target"/>
+
+    <bean id="myAspect" class="com.shed.aop.spring.aspect.MyAspect"/>
+
+    <!--xml配置AOP-->
+    <aop:config>
+        <!--引用MyAspect的Bean为切面对象-->
+        <aop:aspect ref="myAspect">
+            <!--抽取Pointcut切点执行表达式,通知执行时引用-->
+            <aop:pointcut id="myPointcut" expression="execution(* com.shed.aop.spring..*.*(..))"/>
+            <!--通知顺序会影响增强的业务方法的执行顺序-->
+            <aop:before method="before" pointcut-ref="myPointcut"/>
+            <aop:after-returning method="afterReturning" pointcut-ref="myPointcut"/>
+            <aop:around method="around" pointcut-ref="myPointcut"/>
+            <!--有异常才会执行-->
+            <aop:after-throwing method="exceptionThrowing" pointcut-ref="myPointcut"/>
+            <!--无论有无异常都会执行-->
+            <aop:after method="after" pointcut-ref="myPointcut"/>
+        </aop:aspect>
+    </aop:config>
+
+
+</beans>
